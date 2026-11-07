@@ -1,0 +1,8 @@
+# Render blueprint for the backend: https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: shopycat
+    runtime: docker
+    plan: free
+    healthCheckPath: /login
+    autoDeploy: false   # GitHub Actions triggers the deploy after tests pass
