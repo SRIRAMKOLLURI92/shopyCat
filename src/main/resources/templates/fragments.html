@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(title)">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${title} + ' · shopyCat'">shopyCat</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <script th:src="@{/js/location.js}" defer></script>
+</head>
+<body>
+<header th:fragment="nav" class="topbar">
+    <a class="brand" th:href="@{/}">🐱 shopyCat</a>
+    <nav>
+        <a th:href="@{/}">Near me</a>
+        <th:block th:if="${me != null}">
+            <a th:href="@{/dashboard}">Dashboard</a>
+            <a class="btn small" th:href="@{/offers/new}">+ Offer</a>
+            <a class="btn small" th:href="@{/listings/new}">+ Sell used item</a>
+            <form th:action="@{/logout}" method="post" class="inline">
+                <button class="link" type="submit">Log out</button>
+            </form>
+        </th:block>
+        <th:block th:if="${me == null}">
+            <a th:href="@{/login}">Log in</a>
+            <a class="btn small" th:href="@{/register}">Sign up</a>
+        </th:block>
+    </nav>
+</header>
+
+<span th:fragment="audienceBadge(post)" class="badge muted"
+      th:switch="${post.audience.name()}">
+    <th:block th:case="'EVERYONE'">Public</th:block>
+    <th:block th:case="'MEMBERS'">Members only</th:block>
+    <th:block th:case="'SHOP_OWNERS'">Shop owners only</th:block>
+    <th:block th:case="'USERS'">Users only</th:block>
+</span>
+
+<span th:fragment="sourceBadge(post)">
+    <span th:if="${post.fromShop}" class="badge verified">✔ Verified shop</span>
+    <span th:unless="${post.fromShop}" class="badge community">Community</span>
+</span>
+
+<fieldset th:fragment="locationPicker(required)" class="location-picker">
+    <legend>Location</legend>
+    <p class="hint" th:if="${required}">Needed so nearby people can find this.</p>
+    <button type="button" class="btn secondary" data-fill-location>📍 Use my current location</button>
+    <span class="hint" data-location-status></span>
+    <div class="row">
+        <label>Latitude <input name="latitude" data-lat th:value="${param.latitude}" inputmode="decimal"></label>
+        <label>Longitude <input name="longitude" data-lng th:value="${param.longitude}" inputmode="decimal"></label>
+    </div>
+</fieldset>
+
+<footer th:fragment="footer" class="footer">
+    shopyCat · your neighbourhood shops, offers and used items in one place
+</footer>
+</body>
+</html>

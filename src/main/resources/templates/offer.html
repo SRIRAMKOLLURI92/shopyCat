@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head(${offer.title})}"></head>
+<body>
+<header th:replace="~{fragments :: nav}"></header>
+<main class="container narrow">
+    <div class="card-top">
+        <span class="discount big" th:if="${offer.discountPercent != null}" th:text="${offer.discountPercent} + '% off'"></span>
+        <span th:replace="~{fragments :: sourceBadge(${offer})}"></span>
+        <span th:replace="~{fragments :: audienceBadge(${offer})}"></span>
+    </div>
+    <h1 th:text="${offer.title}"></h1>
+    <p th:if="${offer.description}" th:text="${offer.description}"></p>
+    <dl class="details">
+        <th:block th:if="${offer.offerPrice != null}"><dt>Price</dt><dd th:text="'₹' + ${offer.offerPrice}"></dd></th:block>
+        <th:block th:if="${offer.validUntil != null}"><dt>Valid until</dt><dd th:text="${#temporals.format(offer.validUntil, 'd MMMM yyyy')}"></dd></th:block>
+        <dt>Category</dt><dd th:text="${offer.category.label}"></dd>
+        <th:block th:if="${offer.fromShop}">
+            <dt>Shop</dt><dd><a th:href="@{/shops/{id}(id=${offer.shop.id})}" th:text="${offer.shop.name}"></a></dd>
+            <th:block th:if="${offer.shop.address}"><dt>Address</dt><dd th:text="${offer.shop.address}"></dd></th:block>
+            <th:block th:if="${offer.shop.phone}"><dt>Phone</dt><dd><a th:href="'tel:' + ${offer.shop.phone}" th:text="${offer.shop.phone}"></a></dd></th:block>
+        </th:block>
+        <th:block th:unless="${offer.fromShop}">
+            <dt>Where</dt><dd th:text="${offer.placeName}"></dd>
+            <dt>Shared by</dt><dd th:text="${offer.author.displayName}"></dd>
+        </th:block>
+    </dl>
+    <p class="hint" th:unless="${offer.fromShop}">This is a community tip, not confirmed by the shop. Check with the shop before you go.</p>
+    <form th:if="${canManage}" th:action="@{/offers/{id}/delete(id=${offer.id})}" method="post"
+          onsubmit="return confirm('Delete this offer?')">
+        <button class="btn secondary danger">Delete offer</button>
+    </form>
+</main>
+</body>
+</html>

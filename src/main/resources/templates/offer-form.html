@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Post an offer')}"></head>
+<body>
+<header th:replace="~{fragments :: nav}"></header>
+<main class="container narrow">
+    <h1 th:text="${me.shopOwner} ? 'Post an offer' : 'Share a deal tip'"></h1>
+    <p class="hint" th:unless="${me.shopOwner}">Spotted a good deal at a shop nearby? Share it. It will be shown as a <b>community tip</b>.</p>
+    <p class="error" th:if="${error}" th:text="${error}"></p>
+    <form class="form" method="post" th:action="@{/offers}">
+        <label th:if="${!myShops.isEmpty()}">Post for
+            <select name="shopId" data-shop-select>
+                <option th:each="s : ${myShops}" th:value="${s.id}" th:text="${s.name} + ' (verified shop offer)'"
+                        th:selected="${param.shopId != null and param.shopId[0] == s.id.toString()}"></option>
+                <option value="">Myself (community tip about another shop)</option>
+            </select></label>
+        <p class="hint" th:if="${me.shopOwner and myShops.isEmpty()}">
+            <a th:href="@{/shops/new}">Add your shop</a> first to post verified offers. You can still share a community tip below.</p>
+
+        <label>Title <input name="title" th:value="${param.title}" required placeholder="e.g. 20% off all fruits"></label>
+        <label>Details <textarea name="description" rows="3" th:text="${param.description}"></textarea></label>
+        <label>Category
+            <select name="category">
+                <option th:each="c : ${categories}" th:value="${c}" th:text="${c.label}"
+                        th:selected="${param.category != null and param.category[0] == c.name()}"></option>
+            </select></label>
+        <div class="row">
+            <label>Discount % <input name="discountPercent" type="number" min="1" max="100" th:value="${param.discountPercent}"></label>
+            <label>Offer price (₹) <input name="offerPrice" type="number" min="0" step="0.01" th:value="${param.offerPrice}"></label>
+            <label>Valid until <input name="validUntil" type="date" th:value="${param.validUntil}"></label>
+        </div>
+
+        <div data-personal-only>
+            <label>Where is the deal? <input name="placeName" th:value="${param.placeName}" placeholder="Shop name or place"></label>
+            <fieldset th:replace="~{fragments :: locationPicker(true)}"></fieldset>
+            <p class="hint">🔒 For your privacy, the location is rounded to about 1 km before it is saved.</p>
+        </div>
+
+        <label>Who can see this?
+            <select name="audience">
+                <option th:each="a : ${audiences}" th:value="${a}" th:text="${a.description}"
+                        th:selected="${param.audience != null and param.audience[0] == a.name()}"></option>
+            </select></label>
+        <button class="btn" type="submit">Post</button>
+    </form>
+</main>
+</body>
+</html>

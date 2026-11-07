@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Sign up')}"></head>
+<body>
+<header th:replace="~{fragments :: nav}"></header>
+<main class="container narrow">
+    <h1>Create your account</h1>
+    <p class="error" th:if="${error}" th:text="${error}"></p>
+    <form class="form" method="post" th:action="@{/register}">
+        <fieldset class="role-pick">
+            <legend>I am a</legend>
+            <label class="choice"><input type="radio" name="role" value="USER"
+                   th:checked="${param.role == null or param.role[0] == 'USER'}"> Shopper / user
+                <span class="hint">Find deals, share tips, sell used items.</span></label>
+            <label class="choice"><input type="radio" name="role" value="SHOP_OWNER"
+                   th:checked="${param.role != null and param.role[0] == 'SHOP_OWNER'}"> Shop owner
+                <span class="hint">Add your shop and post verified offers.</span></label>
+        </fieldset>
+        <label>Display name <input name="displayName" th:value="${param.displayName}" required maxlength="60">
+            <span class="hint">The only name other people see.</span></label>
+        <label>Email <input type="email" name="email" th:value="${param.email}" required>
+            <span class="hint">Private. Never shown on your posts.</span></label>
+        <label>Phone (optional) <input name="phone" th:value="${param.phone}">
+            <span class="hint">Private. Only shared with someone after you accept their contact request.</span></label>
+        <label>Password <input type="password" name="password" required minlength="8"></label>
+        <button class="btn" type="submit">Create account</button>
+    </form>
+</main>
+</body>
+</html>

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Add a shop')}"></head>
+<body>
+<header th:replace="~{fragments :: nav}"></header>
+<main class="container narrow">
+    <h1>Add your shop</h1>
+    <p class="hint">Shop details are public business information, so customers can find and call you.</p>
+    <p class="error" th:if="${error}" th:text="${error}"></p>
+    <form class="form" method="post" th:action="@{/shops}">
+        <label>Shop name <input name="name" th:value="${param.name}" required></label>
+        <label>Category
+            <select name="category">
+                <option th:each="c : ${categories}" th:value="${c}" th:text="${c.label}"
+                        th:selected="${param.category != null and param.category[0] == c.name()}"></option>
+            </select></label>
+        <label>About the shop <textarea name="description" rows="3" th:text="${param.description}"></textarea></label>
+        <label>Address <input name="address" th:value="${param.address}"></label>
+        <label>Shop phone <input name="phone" th:value="${param.phone}"></label>
+        <label>Opening hours <input name="openingHours" th:value="${param.openingHours}" placeholder="e.g. 9am - 9pm"></label>
+        <fieldset th:replace="~{fragments :: locationPicker(true)}"></fieldset>
+        <button class="btn" type="submit">Save shop</button>
+    </form>
+</main>
+</body>
+</html>
