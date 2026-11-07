@@ -54,29 +54,7 @@ Run the tests with `./mvnw test`.
 
 ## Try it in the browser
 
-`frontend/index.html` is a self-contained web version of the app (same pages and privacy rules, data kept in your browser). Open it directly, or use the GitHub Pages link once the pipeline has deployed it.
-
-## CI/CD (GitHub Actions)
-
-[`.github/workflows/ci-cd.yml`](.github/workflows/ci-cd.yml) runs on every pull request and on pushes to `main`:
-
-1. **Build and test backend**: `./mvnw verify`, uploads test reports and the jar.
-2. **Check frontend**: checks the page script and packages `frontend/` for Pages.
-3. **Build Docker image**: builds the backend image, and on `main` pushes it to `ghcr.io/sriramkolluri92/shopycat`.
-4. **Deploy frontend**: publishes `frontend/` to GitHub Pages (on `main` only).
-5. **Deploy backend**: triggers a Render deploy (on `main` only, when the `RENDER_DEPLOY_HOOK_URL` secret is set).
-
-### One-time setup for the backend deploy
-
-1. On [render.com](https://render.com), create a **Web Service** from this repo (it uses the `Dockerfile`; `render.yaml` has the settings).
-2. In the service's **Settings**, copy the **Deploy Hook** URL.
-3. In GitHub, go to **Settings > Secrets and variables > Actions** and add it as `RENDER_DEPLOY_HOOK_URL`.
-
-Run the backend with Docker yourself:
-
-```bash
-docker build -t shopycat . && docker run -p 8080:8080 shopycat
-```
+`frontend/index.html` is a self-contained web version of the app (same pages and privacy rules, data kept in your browser). Open it directly in a browser.
 
 ## Project layout
 
@@ -89,9 +67,7 @@ src/main/java/com/shopycat/
   web/       Controllers for pages and forms
   config/    Demo data
 src/main/resources/templates/   Thymeleaf pages
-frontend/index.html             Browser-only demo, deployed to GitHub Pages
-Dockerfile, render.yaml         Backend container and Render settings
-.github/workflows/ci-cd.yml     Build, test and deploy pipeline
+frontend/index.html             Browser-only demo of the app
 ```
 
 ## Roadmap ideas
