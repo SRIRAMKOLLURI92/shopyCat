@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>shopyCat Demo</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: sticky top bar + demo account switcher, single centered column of tabs and card grids */
+:root {
+  --bg: #f6f4f1;
+  --surface: #ffffff;
+  --fg: #22201d;
+  --muted: #6b665f;
+  --line: #e4dfd8;
+  --brand: #d9560b;
+  --brand-ink: #ffffff;
+  --brand-soft: #fdeee4;
+  --ok: #1d7a3a;
+  --ok-soft: #e4f3e8;
+  --tip: #6a44b8;
+  --tip-soft: #efe9fa;
+  --warn: #b42318;
+  --warn-soft: #fdeceb;
+  --display: "Bricolage Grotesque", "Trebuchet MS", system-ui, sans-serif;
+  --body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #171513; --surface: #211f1c; --fg: #ece8e2; --muted: #a39d94; --line: #36322d;
+    --brand: #f07a33; --brand-ink: #1a1512; --brand-soft: #3a2518;
+    --ok: #5fcf7f; --ok-soft: #173222; --tip: #b89cf2; --tip-soft: #2a2140; --warn: #ff8a80; --warn-soft: #3a1c1a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #171513; --surface: #211f1c; --fg: #ece8e2; --muted: #a39d94; --line: #36322d;
+  --brand: #f07a33; --brand-ink: #1a1512; --brand-soft: #3a2518;
+  --ok: #5fcf7f; --ok-soft: #173222; --tip: #b89cf2; --tip-soft: #2a2140; --warn: #ff8a80; --warn-soft: #3a1c1a;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 15px; line-height: 1.5; margin: 0; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--surface); }
+a { color: var(--brand); }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; }
+h1 { font-size: 1.9rem; font-weight: 800; letter-spacing: -0.01em; }
+h2 { font-size: 1.2rem; font-weight: 600; margin-top: 28px; }
+h3 { font-size: 1.02rem; font-weight: 600; }
+.wrap { max-width: 1040px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.narrow { max-width: 640px; }
+
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--surface); border-bottom: 1px solid var(--line); }
+.top .wrap { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; justify-content: space-between; padding-block: 10px; }
+.brand { font-family: var(--display); font-weight: 800; font-size: 1.3rem; color: var(--fg); text-decoration: none; cursor: pointer; background: none; border: 0; padding: 0; }
+.brand span { color: var(--brand); }
+.nav { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+.nav button.link { color: var(--fg); }
+
+.demo { background: var(--brand-soft); border-bottom: 1px solid var(--line); }
+.demo .wrap { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; padding-block: 8px; font-size: 0.88rem; }
+.demo b { font-weight: 700; }
+.chip { border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: 99px; padding: 3px 10px; font: inherit; font-size: 0.84rem; cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--brand); color: var(--brand-ink); border-color: var(--brand); }
+.chip:focus-visible, .btn:focus-visible, .link:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, .card:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+main { padding-block: 20px 40px; }
+.lede { color: var(--muted); margin: 6px 0 0; max-width: 62ch; }
+.btn { display: inline-flex; align-items: center; gap: 6px; background: var(--brand); color: var(--brand-ink); border: 0; border-radius: 9px; padding: 9px 14px; font: inherit; font-weight: 700; cursor: pointer; text-decoration: none; }
+.btn.sm { padding: 5px 10px; font-size: 0.88rem; }
+.btn.ghost { background: transparent; color: var(--fg); border: 1px solid var(--line); }
+.btn.danger { background: transparent; color: var(--warn); border: 1px solid var(--line); }
+.link { background: none; border: 0; padding: 0; color: var(--brand); font: inherit; cursor: pointer; }
+.link.danger { color: var(--warn); }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+.filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 6px; }
+.filters input { flex: 1 1 200px; }
+input, select, textarea { font: inherit; color: var(--fg); background: var(--surface); border: 1px solid var(--line); border-radius: 9px; padding: 8px 10px; width: 100%; min-width: 0; }
+.filters select { width: auto; }
+.hint { color: var(--muted); font-size: 0.86rem; margin: 4px 0; }
+
+.tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--line); margin: 16px 0; overflow-x: auto; }
+.tabs button { background: none; border: 0; border-bottom: 2px solid transparent; padding: 8px 14px; font: inherit; color: var(--muted); cursor: pointer; white-space: nowrap; }
+.tabs button[aria-selected="true"] { color: var(--fg); font-weight: 700; border-bottom-color: var(--brand); }
+.tabs .count { font-variant-numeric: tabular-nums; color: var(--muted); font-weight: 500; }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+.card { display: flex; flex-direction: column; gap: 4px; text-align: left; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px; font: inherit; color: inherit; cursor: pointer; min-width: 0; }
+.card:hover { border-color: var(--brand); }
+.card .top-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-height: 24px; }
+.meta { color: var(--muted); font-size: 0.88rem; }
+.empty { color: var(--muted); padding: 20px 0; }
+.big { font-family: var(--display); font-weight: 800; color: var(--brand); font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+.big.xl { font-size: 1.7rem; }
+
+.badge { display: inline-block; font-size: 0.74rem; font-weight: 700; padding: 2px 8px; border-radius: 99px; letter-spacing: 0.01em; }
+.b-ok { background: var(--ok-soft); color: var(--ok); }
+.b-tip { background: var(--tip-soft); color: var(--tip); }
+.b-mute { background: var(--line); color: var(--muted); }
+.b-warn { background: var(--warn-soft); color: var(--warn); }
+
+.form { display: flex; flex-direction: column; gap: 14px; margin-top: 16px; }
+.form label { display: flex; flex-direction: column; gap: 4px; font-weight: 600; }
+.form .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+fieldset { border: 1px solid var(--line); border-radius: 12px; padding: 12px; margin: 0; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+legend { font-weight: 700; padding: 0 4px; }
+.choice { flex-direction: row !important; align-items: flex-start; gap: 8px !important; }
+.choice input { width: auto; margin-top: 4px; }
+.err { background: var(--warn-soft); color: var(--warn); padding: 10px 12px; border-radius: 9px; margin-top: 12px; }
+.ok { background: var(--ok-soft); color: var(--ok); padding: 8px 12px; border-radius: 9px; }
+
+.list { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.list li { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }
+.quote { width: 100%; margin: 0; padding-left: 10px; border-left: 3px solid var(--line); color: var(--muted); }
+dl.kv { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; margin: 16px 0; }
+dl.kv dt { color: var(--muted); }
+dl.kv dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.rules { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; margin-top: 24px; }
+.rules ol { margin: 8px 0 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; }
+.lock { color: var(--muted); font-size: 0.88rem; }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); background: var(--fg); color: var(--bg); padding: 8px 14px; border-radius: 9px; font-weight: 600; z-index: 20; }
+footer { color: var(--muted); font-size: 0.84rem; text-align: center; padding-block: 24px; }
+@media (prefers-reduced-motion: no-preference) { .card { transition: border-color .15s; } }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <button class="brand" data-go="dashboard">shopy<span>Cat</span></button>
+    <nav class="nav" id="nav"></nav>
+  </div>
+</header>
+<main class="wrap" id="app"></main>
+<footer class="wrap">shopyCat test demo · data stays in this browser · <button class="link" id="reset">Reset demo data</button></footer>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+// ---------- Data model (mirrors the Java app) ----------
+const BASE = { lat: 17.3850, lng: 78.4867 }; // demo area: central Hyderabad
+const CATS = { GROCERY: "Grocery", FASHION: "Fashion & clothing", ELECTRONICS: "Electronics & mobiles", PHARMACY: "Pharmacy & health", FOOD: "Restaurants & food", HOME: "Home & furniture", BEAUTY: "Beauty & salon", BOOKS: "Books & stationery", SPORTS: "Sports & fitness", OTHER: "Other" };
+const AUD = { EVERYONE: "Everyone, including visitors who are not logged in", MEMBERS: "Only logged-in members", SHOP_OWNERS: "Only shop owners (for example, stock clearance between shops)", USERS: "Only users (shoppers)" };
+const AUD_SHORT = { EVERYONE: "Public", MEMBERS: "Members only", SHOP_OWNERS: "Shop owners only", USERS: "Users only" };
+const COND = { LIKE_NEW: "Like new", GOOD: "Good", FAIR: "Fair", FOR_PARTS: "For parts / not working" };
+const SPOTS = [
+  { name: "Abids (demo centre)", lat: 17.3850, lng: 78.4867 },
+  { name: "Koti", lat: 17.3840, lng: 78.4810 },
+  { name: "Secunderabad", lat: 17.4399, lng: 78.4983 },
+  { name: "Gachibowli (far away)", lat: 17.4401, lng: 78.3489 },
+];
+const inDays = (n) => { const d = new Date(); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); };
+const blur = (v) => Math.round(v * 100) / 100;
+
+function seed() {
+  const users = [
+    { id: 1, email: "owner@shopycat.dev", password: "password123", name: "Ravi (Fresh Mart)", phone: "+91 90000 00001", role: "SHOP_OWNER" },
+    { id: 2, email: "owner2@shopycat.dev", password: "password123", name: "Meena Styles", phone: "+91 90000 00002", role: "SHOP_OWNER" },
+    { id: 3, email: "user@shopycat.dev", password: "password123", name: "Anil", phone: "+91 90000 00003", role: "USER" },
+    { id: 4, email: "user2@shopycat.dev", password: "password123", name: "Priya", phone: "+91 90000 00004", role: "USER" },
+  ];
+  const shops = [
+    { id: 1, owner: 1, name: "Fresh Mart", cat: "GROCERY", desc: "Daily groceries, fruits and vegetables.", address: "Road No. 1, Abids", phone: "+91 40 1111 2222", hours: "7am - 10pm", lat: BASE.lat + 0.004, lng: BASE.lng + 0.003 },
+    { id: 2, owner: 1, name: "Ravi Mobiles", cat: "ELECTRONICS", desc: "Phones, accessories and repairs.", address: "Main Bazaar", phone: "+91 40 1111 3333", hours: "10am - 9pm", lat: BASE.lat - 0.006, lng: BASE.lng + 0.008 },
+    { id: 3, owner: 2, name: "Meena Styles", cat: "FASHION", desc: "Sarees, kurtas and kids wear.", address: "Station Road", phone: "+91 40 2222 4444", hours: "11am - 9pm", lat: BASE.lat + 0.012, lng: BASE.lng - 0.010 },
+  ];
+  const t = Date.now();
+  const offers = [
+    { id: 1, author: 1, shop: 1, title: "20% off all fruits this weekend", desc: "Fresh stock every morning.", cat: "GROCERY", aud: "EVERYONE", discount: 20, price: null, until: inDays(7), place: null, lat: shops[0].lat, lng: shops[0].lng, at: t - 5e5 },
+    { id: 2, author: 1, shop: 2, title: "Free tempered glass with any phone case", desc: "", cat: "ELECTRONICS", aud: "EVERYONE", discount: null, price: null, until: inDays(7), place: null, lat: shops[1].lat, lng: shops[1].lng, at: t - 4e5 },
+    { id: 3, author: 2, shop: 3, title: "Festive sale: kurtas from ₹499", desc: "Sizes S to XXL.", cat: "FASHION", aud: "MEMBERS", discount: 30, price: 499, until: inDays(7), place: null, lat: shops[2].lat, lng: shops[2].lng, at: t - 3e5 },
+    { id: 4, author: 1, shop: 1, title: "Bulk rice for other shops at wholesale price", desc: "Minimum 10 bags.", cat: "GROCERY", aud: "SHOP_OWNERS", discount: null, price: 1150, until: inDays(7), place: null, lat: shops[0].lat, lng: shops[0].lng, at: t - 2e5 },
+    { id: 5, author: 3, shop: null, title: "Buy 1 get 1 on ice cream at the corner bakery", desc: "Spotted today, valid till stock lasts.", cat: "FOOD", aud: "EVERYONE", discount: 50, price: null, until: inDays(2), place: "Sri Sai Bakery", lat: blur(BASE.lat + 0.002), lng: blur(BASE.lng - 0.004), at: t - 1e5 },
+  ];
+  const listings = [
+    { id: 1, author: 3, shop: null, title: "Study table, 2 years old", desc: "Pick up only.", cat: "HOME", aud: "EVERYONE", price: 1500, cond: "GOOD", sold: false, lat: blur(BASE.lat + 0.0031), lng: blur(BASE.lng + 0.0012), at: t - 4e5 },
+    { id: 2, author: 4, shop: null, title: "Kids cycle (age 6-9)", desc: "", cat: "SPORTS", aud: "USERS", price: 2200, cond: "LIKE_NEW", sold: false, lat: blur(BASE.lat - 0.0083), lng: blur(BASE.lng + 0.0021), at: t - 3e5 },
+    { id: 3, author: 1, shop: 2, title: "Refurbished phone, 64 GB", desc: "3 months shop warranty.", cat: "ELECTRONICS", aud: "EVERYONE", price: 6999, cond: "GOOD", sold: false, lat: shops[1].lat, lng: shops[1].lng, at: t - 2e5 },
+    { id: 4, author: 2, shop: 3, title: "Old display racks for other shops", desc: "Clearing space before the festive season.", cat: "OTHER", aud: "SHOP_OWNERS", price: 800, cond: "FAIR", sold: false, lat: shops[2].lat, lng: shops[2].lng, at: t - 1e5 },
+  ];
+  return { users, shops, offers, listings, contacts: [], me: null, nextId: 100 };
+}
+
+const KEY = "shopycat-demo-v1";
+let db;
+try { db = JSON.parse(localStorage.getItem(KEY)) || seed(); } catch (e) { db = seed(); }
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(db)); } catch (e) {} };
+const nextId = () => ++db.nextId;
+const user = (id) => db.users.find((u) => u.id === id);
+const shop = (id) => db.shops.find((s) => s.id === id);
+const me = () => (db.me ? user(db.me) : null);
+const isOwner = (u) => u && u.role === "SHOP_OWNER";
+
+// ---------- PrivacyPolicy (same rules as the Java class) ----------
+const Privacy = {
+  canView(post, viewer) {
+    if (viewer && post.author === viewer.id) return true;
+    switch (post.aud) {
+      case "EVERYONE": return true;
+      case "MEMBERS": return !!viewer;
+      case "SHOP_OWNERS": return isOwner(viewer);
+      case "USERS": return !!viewer && !isOwner(viewer);
+    }
+    return false;
+  },
+  coordsToStore(shopObj, lat, lng) { return shopObj ? [shopObj.lat, shopObj.lng] : [blur(lat), blur(lng)]; },
+  canRequestContact(l, viewer) { return !!viewer && l.author !== viewer.id && !l.shop && !l.sold && this.canView(l, viewer); },
+  canSeeSellerContact(l, viewer, accepted) { return !!viewer && this.canView(l, viewer) && (l.author === viewer.id || accepted); },
+  canManage(post, viewer) { return !!viewer && post.author === viewer.id; },
+  canPostForShop(s, u) { return !!s && isOwner(u) && s.owner === u.id; },
+};
+
+function distanceKm(a, b, c, d) {
+  const R = 6371, r = Math.PI / 180, dLat = (c - a) * r, dLon = (d - b) * r;
+  const x = Math.sin(dLat / 2) ** 2 + Math.cos(a * r) * Math.cos(c * r) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
+}
+const distLabel = (km) => (km < 1 ? Math.round(km * 1000) + " m away" : km.toFixed(1) + " km away");
+const today = () => new Date().toISOString().slice(0, 10);
+const active = (o) => !o.until || o.until >= today();
+const postedBy = (p) => (p.shop ? shop(p.shop).name : user(p.author).name);
+const money = (n) => "₹" + Number(n).toLocaleString("en-IN");
+const fmtDate = (s) => new Date(s + "T00:00").toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+// ---------- UI state ----------
+const ui = { view: "dashboard", id: null, tab: "offers", q: "", cat: "", radius: 5, spot: 0, error: null };
+const $app = document.getElementById("app");
+function go(view, id = null) { ui.view = view; ui.id = id; ui.error = null; render(); window.scrollTo(0, 0); }
+function toast(msg) { const t = document.getElementById("toast"); t.textContent = msg; t.hidden = false; clearTimeout(toast.h); toast.h = setTimeout(() => (t.hidden = true), 2200); }
+
+const srcBadge = (p) => (p.shop ? '<span class="badge b-ok">✔ Verified shop</span>' : '<span class="badge b-tip">Community</span>');
+const audBadge = (p) => `<span class="badge b-mute">${AUD_SHORT[p.aud]}</span>`;
+const options = (map, sel) => Object.entries(map).map(([k, v]) => `<option value="${k}" ${k === sel ? "selected" : ""}>${esc(v)}</option>`).join("");
+
+function renderChrome() {
+  const m = me();
+  document.getElementById("nav").innerHTML = m
+    ? `<button class="link" data-go="home">Near me</button><button class="link" data-go="dashboard">Dashboard</button>
+       <button class="btn sm" data-go="offer-new">+ Offer</button><button class="btn sm" data-go="listing-new">+ Sell used item</button>
+       <button class="link" data-act="logout">Log out</button>`
+    : `<button class="link" data-go="login">Log in</button><button class="btn sm" data-go="register">Sign up</button>`;
+}
+
+// ---------- Views ----------
+function viewHome() {
+  const viewer = me();
+  const here = SPOTS[ui.spot];
+  const q = ui.q.trim().toLowerCase();
+  const match = (p) => (!ui.cat || p.cat === ui.cat) && (!q || p.title.toLowerCase().includes(q) || (p.desc || "").toLowerCase().includes(q) || postedBy(p).toLowerCase().includes(q));
+  const near = (items) => items.map((p) => ({ p, d: distanceKm(here.lat, here.lng, p.lat, p.lng) })).filter((n) => n.d <= ui.radius).sort((a, b) => a.d - b.d);
+  const offers = near(db.offers.filter((o) => active(o) && Privacy.canView(o, viewer) && match(o)));
+  const listings = near(db.listings.filter((l) => !l.sold && Privacy.canView(l, viewer) && match(l)));
+  const shops = db.shops.filter((s) => !ui.cat || s.cat === ui.cat).map((s) => ({ p: s, d: distanceKm(here.lat, here.lng, s.lat, s.lng) })).filter((n) => n.d <= ui.radius).sort((a, b) => a.d - b.d);
+
+  let body = "";
+  if (ui.tab === "offers") {
+    body = offers.length ? offers.map(({ p: o, d }) => `
+      <button class="card" data-go="offer" data-id="${o.id}">
+        <div class="top-row">${o.discount ? `<span class="big">${o.discount}% off</span>` : ""}${srcBadge(o)}</div>
+        <h3>${esc(o.title)}</h3>
+        <div class="meta">${o.shop ? esc(shop(o.shop).name) : esc(o.place) + " · tip by " + esc(user(o.author).name)}</div>
+        <div class="meta">${CATS[o.cat]} · ${distLabel(d)}${o.until ? " · until " + fmtDate(o.until) : ""}</div>
+        <div>${audBadge(o)}</div>
+      </button>`).join("") : `<p class="empty">No offers you can see within ${ui.radius} km. Try a bigger radius, or switch account above.</p>`;
+  } else if (ui.tab === "used") {
+    body = listings.length ? listings.map(({ p: l, d }) => `
+      <button class="card" data-go="listing" data-id="${l.id}">
+        <div class="top-row"><span class="big">${money(l.price)}</span>${srcBadge(l)}</div>
+        <h3>${esc(l.title)}</h3>
+        <div class="meta">${COND[l.cond]} · ${esc(postedBy(l))}</div>
+        <div class="meta">${CATS[l.cat]} · ${l.shop ? "" : "about "}${distLabel(d)}</div>
+        <div>${audBadge(l)}</div>
+      </button>`).join("") : `<p class="empty">No used items you can see within ${ui.radius} km.</p>`;
+  } else {
+    body = shops.length ? shops.map(({ p: s, d }) => `
+      <button class="card" data-go="shop" data-id="${s.id}">
+        <h3>${esc(s.name)}</h3><div class="meta">${CATS[s.cat]}</div><div class="meta">${esc(s.address)}</div><div class="meta">${distLabel(d)}</div>
+      </button>`).join("") : `<p class="empty">No shops within ${ui.radius} km.</p>`;
+  }
+
+  return `
+    <h1>What's on offer near you</h1>
+    <p class="lede">Deals from local shops, tips from neighbours and used items for sale, sorted by distance.</p>
+    <div class="filters">
+      <input id="f-q" type="search" placeholder="Search offers, items, shops" value="${esc(ui.q)}">
+      <select id="f-cat"><option value="">All categories</option>${options(CATS, ui.cat)}</select>
+      <select id="f-radius">${[1, 2, 5, 10, 25].map((r) => `<option value="${r}" ${r == ui.radius ? "selected" : ""}>${r} km</option>`).join("")}</select>
+      <select id="f-spot" aria-label="Your location">${SPOTS.map((s, i) => `<option value="${i}" ${i == ui.spot ? "selected" : ""}>📍 ${esc(s.name)}</option>`).join("")}</select>
+    </div>
+    <p class="hint">In this demo, pick where you are from the 📍 list. The real app uses your phone's location.</p>
+    <div class="tabs" role="tablist">
+      <button role="tab" data-tab="offers" aria-selected="${ui.tab === "offers"}">Offers <span class="count">${offers.length}</span></button>
+      <button role="tab" data-tab="used" aria-selected="${ui.tab === "used"}">Used items <span class="count">${listings.length}</span></button>
+      <button role="tab" data-tab="shops" aria-selected="${ui.tab === "shops"}">Shops <span class="count">${shops.length}</span></button>
+    </div>
+    <div class="grid">${body}</div>
+    ${rulesBox()}`;
+}
+
+function rulesBox() {
+  return `<section class="rules"><h3>Privacy rules between shop owners and users</h3><ol>
+    <li><b>Who can see a post:</b> everyone, members only, shop owners only, or users only. The author always sees their own.</li>
+    <li><b>Names:</b> people are shown by display name only. Email and phone never appear on a post.</li>
+    <li><b>Location:</b> shops show their exact spot. A person's location is rounded to about 1 km.</li>
+    <li><b>Contact:</b> shop phones are public. A private seller's details are shared only after they accept a contact request.</li>
+    <li><b>Ownership:</b> only the author can delete or mark sold, and only a shop's owner can post for that shop.</li>
+    <li><b>Trust labels:</b> "Verified shop" for shop offers, "Community" for tips from users.</li></ol></section>`;
+}
+
+function hidden() { return `<h1>Not found</h1><p class="lede">This page does not exist, or it is not shared with you.</p><p><button class="btn ghost" data-go="home">Back to Near me</button></p>`; }
+function needLogin() { return `<h1>Log in to see this</h1><p class="lede">This post is only shared with some members.</p><p><button class="btn" data-go="login">Log in</button></p>`; }
+const errBox = () => (ui.error ? `<p class="err">${esc(ui.error)}</p>` : "");
+
+function viewOffer() {
+  const o = db.offers.find((x) => x.id === ui.id); const v = me();
+  if (!o) return hidden();
+  if (!Privacy.canView(o, v)) return v ? hidden() : needLogin();
+  const s = o.shop ? shop(o.shop) : null;
+  return `<div class="narrow">
+    <div class="row">${o.discount ? `<span class="big xl">${o.discount}% off</span>` : ""}${srcBadge(o)}${audBadge(o)}</div>
+    <h1 style="margin-top:8px">${esc(o.title)}</h1>${o.desc ? `<p>${esc(o.desc)}</p>` : ""}
+    <dl class="kv">
+      ${o.price ? `<dt>Price</dt><dd>${money(o.price)}</dd>` : ""}
+      ${o.until ? `<dt>Valid until</dt><dd>${fmtDate(o.until)}</dd>` : ""}
+      <dt>Category</dt><dd>${CATS[o.cat]}</dd>
+      ${s ? `<dt>Shop</dt><dd><button class="link" data-go="shop" data-id="${s.id}">${esc(s.name)}</button></dd><dt>Address</dt><dd>${esc(s.address)}</dd><dt>Phone</dt><dd>${esc(s.phone)}</dd>`
+          : `<dt>Where</dt><dd>${esc(o.place)}</dd><dt>Shared by</dt><dd>${esc(user(o.author).name)}</dd>`}
+    </dl>
+    ${s ? "" : `<p class="hint">This is a community tip, not confirmed by the shop. Check with the shop before you go.</p>`}
+    ${Privacy.canManage(o, v) ? `<button class="btn danger" data-act="del-offer" data-id="${o.id}">Delete offer</button>` : ""}
+  </div>`;
+}
+
+function viewListing() {
+  const l = db.listings.find((x) => x.id === ui.id); const v = me();
+  if (!l) return hidden();
+  if (!Privacy.canView(l, v)) return v ? hidden() : needLogin();
+  const mine = v ? db.contacts.find((c) => c.listing === l.id && c.requester === v.id) : null;
+  const accepted = mine && mine.status === "ACCEPTED";
+  const seller = user(l.author); const s = l.shop ? shop(l.shop) : null;
+  const manage = Privacy.canManage(l, v);
+  let contact = "";
+  if (!s && !manage) {
+    contact = `<p class="lock">🔒 The seller's phone and email are private.</p>`;
+    if (!v) contact += `<p><button class="link" data-go="login">Log in</button> to contact the seller.</p>`;
+    else if (mine) contact += mine.status === "PENDING" ? `<p><span class="badge b-mute">Contact request sent. Waiting for the seller.</span></p>`
+      : mine.status === "ACCEPTED" ? `<p class="ok">The seller accepted your request.</p>` : `<p><span class="badge b-mute">The seller declined your request.</span></p>`;
+    else if (Privacy.canRequestContact(l, v)) contact += `<form class="form" data-form="contact" data-id="${l.id}">
+        <label>Message to the seller <textarea id="c-msg" name="message" rows="2" maxlength="500" placeholder="Hi, is this still available?"></textarea></label>
+        <div><button class="btn">Send contact request</button></div>
+        <p class="hint">If the seller accepts, you both see each other's email and phone.</p></form>`;
+  }
+  return `<div class="narrow">
+    <div class="row"><span class="big xl">${money(l.price)}</span>${srcBadge(l)}${audBadge(l)}${l.sold ? '<span class="badge b-warn">Sold</span>' : ""}</div>
+    <h1 style="margin-top:8px">${esc(l.title)}</h1>${l.desc ? `<p>${esc(l.desc)}</p>` : ""}
+    <dl class="kv">
+      <dt>Condition</dt><dd>${COND[l.cond]}</dd><dt>Category</dt><dd>${CATS[l.cat]}</dd>
+      <dt>Seller</dt><dd>${s ? `<button class="link" data-go="shop" data-id="${s.id}">${esc(s.name)}</button>` : esc(seller.name) + " (private seller)"}</dd>
+      ${s ? `<dt>Shop phone</dt><dd>${esc(s.phone)}</dd>` : ""}
+      ${!s && !manage && Privacy.canSeeSellerContact(l, v, accepted) ? `<dt>Seller contact</dt><dd>${esc(seller.email)}${seller.phone ? " · " + esc(seller.phone) : ""}</dd>` : ""}
+      ${!s ? `<dt>Area</dt><dd>${l.lat.toFixed(2)}, ${l.lng.toFixed(2)} <span class="hint">(rounded to about 1 km)</span></dd>` : ""}
+    </dl>
+    ${contact}
+    ${manage ? `<div class="row">${!l.sold ? `<button class="btn ghost" data-act="sold" data-id="${l.id}">Mark as sold</button>` : ""}<button class="btn danger" data-act="del-listing" data-id="${l.id}">Delete</button></div>` : ""}
+  </div>`;
+}
+
+function viewShop() {
+  const s = shop(ui.id); const v = me();
+  if (!s) return hidden();
+  const offers = db.offers.filter((o) => o.shop === s.id && active(o) && Privacy.canView(o, v));
+  const items = db.listings.filter((l) => l.shop === s.id && !l.sold && Privacy.canView(l, v));
+  const owner = v && s.owner === v.id;
+  return `<h1>${esc(s.name)}</h1><p class="meta">${CATS[s.cat]}</p>${s.desc ? `<p>${esc(s.desc)}</p>` : ""}
+    <dl class="kv"><dt>Address</dt><dd>${esc(s.address || "—")}</dd><dt>Phone</dt><dd>${esc(s.phone || "—")}</dd><dt>Hours</dt><dd>${esc(s.hours || "—")}</dd>
+    <dt>Map</dt><dd><a target="_blank" rel="noopener" href="https://www.openstreetmap.org/?mlat=${s.lat}&mlon=${s.lng}#map=17/${s.lat}/${s.lng}">Open in OpenStreetMap</a></dd></dl>
+    ${owner ? `<div class="row"><button class="btn" data-go="offer-new" data-id="${s.id}">+ Post an offer for this shop</button><button class="btn ghost" data-go="listing-new" data-id="${s.id}">+ List a used item</button></div>` : ""}
+    <h2>Current offers</h2>
+    <div class="grid" style="margin-top:10px">${offers.map((o) => `<button class="card" data-go="offer" data-id="${o.id}">${o.discount ? `<span class="big">${o.discount}% off</span>` : ""}<h3>${esc(o.title)}</h3><div>${audBadge(o)}</div></button>`).join("") || '<p class="empty">No current offers you can see.</p>'}</div>
+    <h2>Used items from this shop</h2>
+    <div class="grid" style="margin-top:10px">${items.map((l) => `<button class="card" data-go="listing" data-id="${l.id}"><span class="big">${money(l.price)}</span><h3>${esc(l.title)}</h3><div>${audBadge(l)}</div></button>`).join("") || '<p class="empty">None right now.</p>'}</div>`;
+}
+
+function viewLogin() {
+  return `<div class="narrow"><h1>Log in</h1>${errBox()}
+    <form class="form" data-form="login">
+      <label>Email <input id="l-email" name="email" type="email" required value="user@shopycat.dev"></label>
+      <label>Password <input id="l-pass" name="password" type="password" required value="password123"></label>
+      <div><button class="btn">Log in</button></div>
+    </form>
+    <p class="hint">Demo accounts, all with password <b>password123</b>:</p>
+    <div class="row">${db.users.slice(0, 4).map((u) => `<button class="chip" data-quick="${u.id}">${esc(u.email)} · ${isOwner(u) ? "shop owner" : "user"}</button>`).join("")}</div>
+    <p>New here? <button class="link" data-go="register">Create an account</button></p></div>`;
+}
+
+function viewRegister() {
+  return `<div class="narrow"><h1>Create your account</h1>${errBox()}
+    <form class="form" data-form="register">
+      <fieldset><legend>I am a</legend>
+        <label class="choice"><input type="radio" name="role" value="USER" checked> <span>Shopper / user<br><span class="hint">Find deals, share tips, sell used items.</span></span></label>
+        <label class="choice"><input type="radio" name="role" value="SHOP_OWNER"> <span>Shop owner<br><span class="hint">Add your shop and post verified offers.</span></span></label>
+      </fieldset>
+      <label>Display name <input id="r-name" name="name" required maxlength="60"><span class="hint">The only name other people see.</span></label>
+      <label>Email <input id="r-email" name="email" type="email" required><span class="hint">Private. Never shown on your posts.</span></label>
+      <label>Phone (optional) <input id="r-phone" name="phone"><span class="hint">Private. Only shared after you accept a contact request.</span></label>
+      <label>Password <input id="r-pass" name="password" type="password" required minlength="8"></label>
+      <div><button class="btn">Create account</button></div>
+    </form></div>`;
+}
+
+function viewDashboard() {
+  const m = me(); if (!m) return viewLogin();
+  const myShops = db.shops.filter((s) => s.owner === m.id);
+  const myOffers = db.offers.filter((o) => o.author === m.id).sort((a, b) => b.at - a.at);
+  const myItems = db.listings.filter((l) => l.author === m.id).sort((a, b) => b.at - a.at);
+  const incoming = db.contacts.filter((c) => { const l = db.listings.find((x) => x.id === c.listing); return l && l.author === m.id; });
+  const outgoing = db.contacts.filter((c) => c.requester === m.id);
+  const L = (id) => db.listings.find((x) => x.id === id);
+  return `<h1>Hi, ${esc(m.name)}</h1><p class="meta">${isOwner(m) ? "Shop owner" : "User"} account</p>
+    <div class="row" style="margin-top:12px">
+      <button class="btn ghost" data-go="home">📍 See what's near me</button>
+      ${isOwner(m) ? `<button class="btn" data-go="shop-new">+ Add a shop</button>` : ""}
+      <button class="btn" data-go="offer-new">${isOwner(m) ? "+ Post a shop offer" : "+ Share a deal tip"}</button>
+      <button class="btn" data-go="listing-new">+ Sell a used item</button>
+    </div>
+    ${isOwner(m) ? `<h2>My shops</h2>${myShops.length ? `<ul class="list">${myShops.map((s) => `<li><button class="link" data-go="shop" data-id="${s.id}">${esc(s.name)}</button><span class="meta">${CATS[s.cat]} · ${esc(s.address)}</span></li>`).join("")}</ul>` : `<p class="empty">You have not added a shop yet.</p>`}` : ""}
+    <h2>Contact requests for my items</h2><p class="hint">Your phone and email are only shared if you accept.</p>
+    ${incoming.length ? `<ul class="list">${incoming.map((c) => { const r = user(c.requester); return `<li><b>${esc(r.name)}</b><span class="badge b-mute">${isOwner(r) ? "Shop owner" : "User"}</span> about <button class="link" data-go="listing" data-id="${c.listing}">${esc(L(c.listing).title)}</button>
+        ${c.message ? `<p class="quote">${esc(c.message)}</p>` : ""}
+        ${c.status === "PENDING" ? `<span class="row"><button class="btn sm" data-act="accept" data-id="${c.id}">Accept and share contacts</button><button class="btn sm ghost" data-act="decline" data-id="${c.id}">Decline</button></span>`
+          : c.status === "ACCEPTED" ? `<span class="ok">Accepted. Their contact: ${esc(r.email)}${r.phone ? " · " + esc(r.phone) : ""}</span>` : `<span class="meta">Declined</span>`}</li>`; }).join("")}</ul>` : `<p class="empty">No requests yet. Tip: switch to another account, open one of your items and send a request.</p>`}
+    <h2>My contact requests</h2>
+    ${outgoing.length ? `<ul class="list">${outgoing.map((c) => { const l = L(c.listing); const s = user(l.author); return `<li><button class="link" data-go="listing" data-id="${l.id}">${esc(l.title)}</button> by ${esc(postedBy(l))}:
+        ${c.status === "PENDING" ? `<span class="badge b-mute">Waiting for reply</span>` : c.status === "ACCEPTED" ? `<span class="ok">Accepted. Contact: ${esc(s.email)}${s.phone ? " · " + esc(s.phone) : ""}</span>` : `<span class="badge b-mute">Declined</span>`}</li>`; }).join("")}</ul>` : `<p class="empty">You have not contacted any sellers yet.</p>`}
+    <h2>My offers</h2>
+    ${myOffers.length ? `<ul class="list">${myOffers.map((o) => `<li><button class="link" data-go="offer" data-id="${o.id}">${esc(o.title)}</button>${srcBadge(o)}${audBadge(o)}${active(o) ? "" : '<span class="badge b-warn">Expired</span>'}<button class="link danger" data-act="del-offer" data-id="${o.id}">Delete</button></li>`).join("")}</ul>` : `<p class="empty">No offers yet.</p>`}
+    <h2>My used items</h2>
+    ${myItems.length ? `<ul class="list">${myItems.map((l) => `<li><button class="link" data-go="listing" data-id="${l.id}">${esc(l.title)}</button><span class="meta">${money(l.price)}</span>${audBadge(l)}${l.sold ? '<span class="badge b-warn">Sold</span>' : `<button class="link" data-act="sold" data-id="${l.id}">Mark sold</button>`}<button class="link danger" data-act="del-listing" data-id="${l.id}">Delete</button></li>`).join("")}</ul>` : `<p class="empty">Nothing for sale yet.</p>`}`;
+}
+
+function locationFields() {
+  return `<fieldset><legend>Location</legend>
+    <label>Where are you? <select id="p-spot" name="spot">${SPOTS.map((s, i) => `<option value="${i}" ${i == ui.spot ? "selected" : ""}>${esc(s.name)}</option>`).join("")}</select></label>
+    <p class="hint">🔒 For your privacy, the location is rounded to about 1 km before it is saved.</p></fieldset>`;
+}
+
+function viewShopNew() {
+  const m = me(); if (!isOwner(m)) return hidden();
+  return `<div class="narrow"><h1>Add your shop</h1><p class="lede">Shop details are public business information, so customers can find and call you.</p>${errBox()}
+    <form class="form" data-form="shop">
+      <label>Shop name <input id="s-name" name="name" required></label>
+      <label>Category <select id="s-cat" name="cat">${options(CATS)}</select></label>
+      <label>About the shop <textarea id="s-desc" name="desc" rows="3"></textarea></label>
+      <label>Address <input id="s-addr" name="address"></label>
+      <div class="cols"><label>Shop phone <input id="s-phone" name="phone"></label><label>Opening hours <input id="s-hours" name="hours" placeholder="e.g. 9am - 9pm"></label></div>
+      <fieldset><legend>Shop location</legend><label>Area <select id="s-spot" name="spot">${SPOTS.map((s, i) => `<option value="${i}">${esc(s.name)}</option>`).join("")}</select></label>
+        <p class="hint">Shop locations are exact, because customers need to find you.</p></fieldset>
+      <div><button class="btn">Save shop</button></div>
+    </form></div>`;
+}
+
+function viewOfferNew() {
+  const m = me(); if (!m) return viewLogin();
+  const myShops = isOwner(m) ? db.shops.filter((s) => s.owner === m.id) : [];
+  return `<div class="narrow"><h1>${isOwner(m) ? "Post an offer" : "Share a deal tip"}</h1>
+    ${isOwner(m) ? "" : `<p class="lede">Spotted a good deal at a shop nearby? Share it. It will be shown as a community tip.</p>`}${errBox()}
+    <form class="form" data-form="offer">
+      ${myShops.length ? `<label>Post for <select id="o-shop" name="shop" data-shop-select>${myShops.map((s) => `<option value="${s.id}" ${s.id === ui.id ? "selected" : ""}>${esc(s.name)} (verified shop offer)</option>`).join("")}<option value="">Myself (community tip about another shop)</option></select></label>` : ""}
+      ${isOwner(m) && !myShops.length ? `<p class="hint"><button class="link" data-go="shop-new">Add your shop</button> first to post verified offers.</p>` : ""}
+      <label>Title <input id="o-title" name="title" required placeholder="e.g. 20% off all fruits"></label>
+      <label>Details <textarea id="o-desc" name="desc" rows="2"></textarea></label>
+      <label>Category <select id="o-cat" name="cat">${options(CATS)}</select></label>
+      <div class="cols">
+        <label>Discount % <input id="o-disc" name="discount" type="number" min="1" max="100"></label>
+        <label>Offer price (₹) <input id="o-price" name="price" type="number" min="0"></label>
+        <label>Valid until <input id="o-until" name="until" type="date" min="${today()}"></label>
+      </div>
+      <div data-personal ${myShops.length ? "hidden" : ""}>
+        <label style="margin-bottom:10px">Where is the deal? <input id="o-place" name="place" placeholder="Shop name or place"></label>
+        ${locationFields()}
+      </div>
+      <label>Who can see this? <select id="o-aud" name="aud">${options(AUD)}</select></label>
+      <div><button class="btn">Post</button></div>
+    </form></div>`;
+}
+
+function viewListingNew() {
+  const m = me(); if (!m) return viewLogin();
+  const myShops = isOwner(m) ? db.shops.filter((s) => s.owner === m.id) : [];
+  return `<div class="narrow"><h1>Sell a used item</h1>${errBox()}
+    <form class="form" data-form="listing">
+      ${myShops.length ? `<label>Sell as <select id="i-shop" name="shop" data-shop-select><option value="">Myself (private seller)</option>${myShops.map((s) => `<option value="${s.id}" ${s.id === ui.id ? "selected" : ""}>${esc(s.name)}</option>`).join("")}</select></label>` : ""}
+      <label>What are you selling? <input id="i-title" name="title" required></label>
+      <label>Details <textarea id="i-desc" name="desc" rows="2"></textarea></label>
+      <div class="cols">
+        <label>Price (₹) <input id="i-price" name="price" type="number" min="0" required></label>
+        <label>Condition <select id="i-cond" name="cond">${options(COND)}</select></label>
+        <label>Category <select id="i-cat" name="cat">${options(CATS)}</select></label>
+      </div>
+      <div data-personal ${myShops.length && ui.id ? "hidden" : ""}>${locationFields()}
+        <p class="hint">🔒 Your phone and email stay hidden. Buyers send a contact request, and you choose whether to share your details.</p></div>
+      <label>Who can see this? <select id="i-aud" name="aud">${options(AUD)}</select></label>
+      <div><button class="btn">List item</button></div>
+    </form></div>`;
+}
+
+const VIEWS = { home: viewHome, offer: viewOffer, listing: viewListing, shop: viewShop, login: viewLogin, register: viewRegister, dashboard: viewDashboard, "shop-new": viewShopNew, "offer-new": viewOfferNew, "listing-new": viewListingNew };
+function render() {
+  if (!me() && ui.view !== "register") ui.view = "login";
+  renderChrome();
+  $app.innerHTML = (VIEWS[ui.view] || viewDashboard)();
+}
+
+// ---------- Actions ----------
+document.addEventListener("click", (e) => {
+  const t = e.target.closest("[data-go],[data-act],[data-as],[data-tab],[data-quick]");
+  if (!t) return;
+  if (t.dataset.quick) { const u = user(Number(t.dataset.quick)); document.getElementById("l-email").value = u.email; document.getElementById("l-pass").value = u.password; return; }
+  if (t.dataset.as !== undefined) { db.me = t.dataset.as ? Number(t.dataset.as) : null; save(); toast(db.me ? "Now testing as " + me().name : "Now testing as a visitor"); render(); return; }
+  if (t.dataset.tab) { ui.tab = t.dataset.tab; render(); return; }
+  if (t.dataset.go) { e.preventDefault(); go(t.dataset.go, t.dataset.id ? Number(t.dataset.id) : null); return; }
+  const id = Number(t.dataset.id); const m = me();
+  switch (t.dataset.act) {
+    case "logout": db.me = null; save(); go("login"); toast("Logged out"); break;
+    case "del-offer": { const o = db.offers.find((x) => x.id === id); if (o && Privacy.canManage(o, m)) { db.offers = db.offers.filter((x) => x.id !== id); save(); go("dashboard"); toast("Offer deleted"); } break; }
+    case "del-listing": { const l = db.listings.find((x) => x.id === id); if (l && Privacy.canManage(l, m)) { db.listings = db.listings.filter((x) => x.id !== id); db.contacts = db.contacts.filter((c) => c.listing !== id); save(); go("dashboard"); toast("Item deleted"); } break; }
+    case "sold": { const l = db.listings.find((x) => x.id === id); if (l && Privacy.canManage(l, m)) { l.sold = true; save(); render(); toast("Marked as sold"); } break; }
+    case "accept": case "decline": {
+      const c = db.contacts.find((x) => x.id === id); const l = c && db.listings.find((x) => x.id === c.listing);
+      if (l && m && l.author === m.id) { c.status = t.dataset.act === "accept" ? "ACCEPTED" : "DECLINED"; save(); render(); toast(c.status === "ACCEPTED" ? "Accepted. Contacts shared." : "Declined"); }
+      break;
+    }
+  }
+});
+
+document.addEventListener("change", (e) => {
+  const id = e.target.id;
+  if (id === "f-cat") { ui.cat = e.target.value; render(); }
+  else if (id === "f-radius") { ui.radius = Number(e.target.value); render(); }
+  else if (id === "f-spot") { ui.spot = Number(e.target.value); render(); }
+  else if (e.target.matches("[data-shop-select]")) { const p = document.querySelector("[data-personal]"); if (p) p.hidden = e.target.value !== ""; }
+});
+document.addEventListener("input", (e) => {
+  if (e.target.id === "f-q") { ui.q = e.target.value; const pos = e.target.selectionStart; render(); const el = document.getElementById("f-q"); el.focus(); el.setSelectionRange(pos, pos); }
+});
+
+function fail(msg) { ui.error = msg; const keep = new FormData(document.querySelector("form.form")); render(); const f = document.querySelector("form.form"); if (f) for (const [k, v] of keep) { const el = f.elements[k]; if (el && el.type !== "radio") el.value = v; } if (f) { const sel = f.querySelector("[data-shop-select]"); const p = f.querySelector("[data-personal]"); if (sel && p) p.hidden = sel.value !== ""; } window.scrollTo(0, 0); }
+
+document.addEventListener("submit", (e) => {
+  e.preventDefault();
+  const f = e.target; const d = Object.fromEntries(new FormData(f)); const m = me();
+  switch (f.dataset.form) {
+    case "login": {
+      const u = db.users.find((x) => x.email.toLowerCase() === d.email.trim().toLowerCase() && x.password === d.password);
+      if (!u) return fail("Wrong email or password.");
+      db.me = u.id; save(); go("dashboard"); toast("Welcome, " + u.name); break;
+    }
+    case "register": {
+      if (!d.email.includes("@")) return fail("Please enter a valid email.");
+      if (d.password.length < 8) return fail("Password must be at least 8 characters.");
+      if (!d.name.trim()) return fail("Please choose a display name.");
+      if (db.users.some((u) => u.email.toLowerCase() === d.email.trim().toLowerCase())) return fail("An account with this email already exists.");
+      const u = { id: nextId(), email: d.email.trim().toLowerCase(), password: d.password, name: d.name.trim(), phone: d.phone.trim() || null, role: d.role };
+      db.users.push(u); db.me = u.id; save(); go("dashboard"); toast("Account created"); break;
+    }
+    case "shop": {
+      if (!isOwner(m)) return;
+      if (!d.name.trim()) return fail("Please enter the shop name.");
+      const spot = SPOTS[Number(d.spot)];
+      const s = { id: nextId(), owner: m.id, name: d.name.trim(), cat: d.cat, desc: d.desc.trim(), address: d.address.trim(), phone: d.phone.trim(), hours: d.hours.trim(), lat: spot.lat + (Math.random() - 0.5) * 0.004, lng: spot.lng + (Math.random() - 0.5) * 0.004 };
+      db.shops.push(s); save(); go("shop", s.id); toast("Shop saved"); break;
+    }
+    case "offer": {
+      const s = d.shop ? shop(Number(d.shop)) : null;
+      if (d.shop && !Privacy.canPostForShop(s, m)) return fail("You can only post offers for your own shops.");
+      if (!d.title.trim()) return fail("Please enter a title.");
+      const disc = d.discount ? Number(d.discount) : null;
+      if (disc !== null && (disc < 1 || disc > 100)) return fail("Discount must be between 1 and 100 percent.");
+      if (d.until && d.until < today()) return fail("The end date is already in the past.");
+      if (!s && !(d.place || "").trim()) return fail("Please say where this deal is (shop name or place).");
+      const spot = SPOTS[Number(d.spot ?? ui.spot)];
+      const [lat, lng] = Privacy.coordsToStore(s, spot.lat + 0.0013, spot.lng - 0.0017);
+      const o = { id: nextId(), author: m.id, shop: s ? s.id : null, title: d.title.trim(), desc: d.desc.trim(), cat: d.cat, aud: d.aud, discount: disc, price: d.price ? Number(d.price) : null, until: d.until || null, place: s ? null : d.place.trim(), lat, lng, at: Date.now() };
+      db.offers.push(o); save(); go("offer", o.id); toast("Offer posted"); break;
+    }
+    case "listing": {
+      const s = d.shop ? shop(Number(d.shop)) : null;
+      if (d.shop && !Privacy.canPostForShop(s, m)) return fail("You can only list items for your own shops.");
+      if (!d.title.trim()) return fail("Please enter a title.");
+      if (d.price === "" || Number(d.price) < 0) return fail("Please enter a price (0 for free).");
+      const spot = SPOTS[Number(d.spot ?? ui.spot)];
+      const [lat, lng] = Privacy.coordsToStore(s, spot.lat + 0.0031, spot.lng + 0.0024);
+      const l = { id: nextId(), author: m.id, shop: s ? s.id : null, title: d.title.trim(), desc: d.desc.trim(), cat: d.cat, aud: d.aud, price: Number(d.price), cond: d.cond, sold: false, lat, lng, at: Date.now() };
+      db.listings.push(l); save(); go("listing", l.id); toast("Item listed"); break;
+    }
+    case "contact": {
+      const l = db.listings.find((x) => x.id === Number(f.dataset.id));
+      if (!l || !Privacy.canRequestContact(l, m) || db.contacts.some((c) => c.listing === l.id && c.requester === m.id)) return;
+      db.contacts.push({ id: nextId(), listing: l.id, requester: m.id, message: (d.message || "").trim().slice(0, 500), status: "PENDING", at: Date.now() });
+      save(); render(); toast("Contact request sent"); break;
+    }
+  }
+});
+
+document.getElementById("reset").addEventListener("click", () => { db = seed(); save(); ui.tab = "offers"; go("login"); toast("Demo data reset"); });
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head(${listing.title})}"></head>
+<body>
+<header th:replace="~{fragments :: nav}"></header>
+<main class="container narrow">
+    <div class="card-top">
+        <span class="price big" th:text="'₹' + ${listing.price}"></span>
+        <span th:replace="~{fragments :: sourceBadge(${listing})}"></span>
+        <span th:replace="~{fragments :: audienceBadge(${listing})}"></span>
+        <span class="badge expired" th:unless="${listing.available}">Sold</span>
+    </div>
+    <h1 th:text="${listing.title}"></h1>
+    <p th:if="${listing.description}" th:text="${listing.description}"></p>
+    <dl class="details">
+        <dt>Condition</dt><dd th:text="${listing.itemCondition.label}"></dd>
+        <dt>Category</dt><dd th:text="${listing.category.label}"></dd>
+        <dt>Seller</dt>
+        <dd>
+            <a th:if="${listing.fromShop}" th:href="@{/shops/{id}(id=${listing.shop.id})}" th:text="${listing.shop.name}"></a>
+            <span th:unless="${listing.fromShop}" th:text="${listing.author.displayName} + ' (private seller)'"></span>
+        </dd>
+        <th:block th:if="${listing.fromShop and listing.shop.phone != null}">
+            <dt>Shop phone</dt><dd><a th:href="'tel:' + ${listing.shop.phone}" th:text="${listing.shop.phone}"></a></dd>
+        </th:block>
+        <th:block th:if="${showSellerContact and !listing.fromShop}">
+            <dt>Seller contact</dt>
+            <dd><span th:text="${listing.author.email}"></span>
+                <span th:if="${listing.author.phone}" th:text="' · ' + ${listing.author.phone}"></span></dd>
+        </th:block>
+    </dl>
+
+    <th:block th:unless="${listing.fromShop or canManage}">
+        <p class="hint">🔒 The seller's phone and email are private.</p>
+        <p th:if="${me == null}"><a th:href="@{/login}">Log in</a> to contact the seller.</p>
+        <form th:if="${canRequestContact}" class="form" method="post" th:action="@{/listings/{id}/contact(id=${listing.id})}">
+            <label>Message to the seller <textarea name="message" rows="2" maxlength="500"
+                       placeholder="Hi, is this still available?"></textarea></label>
+            <button class="btn" type="submit">Send contact request</button>
+            <p class="hint">If the seller accepts, you both see each other's email and phone.</p>
+        </form>
+        <p th:if="${myRequest != null}" th:switch="${myRequest.status.name()}">
+            <span th:case="'PENDING'" class="badge muted">Contact request sent. Waiting for the seller.</span>
+            <span th:case="'ACCEPTED'" class="notice">The seller accepted your request.</span>
+            <span th:case="*" class="badge muted">The seller declined your request.</span>
+        </p>
+    </th:block>
+
+    <div class="actions" th:if="${canManage}">
+        <form th:if="${listing.available}" th:action="@{/listings/{id}/sold(id=${listing.id})}" method="post" class="inline">
+            <button class="btn secondary">Mark as sold</button></form>
+        <form th:action="@{/listings/{id}/delete(id=${listing.id})}" method="post" class="inline"
+              onsubmit="return confirm('Delete this item?')">
+            <button class="btn secondary danger">Delete</button></form>
+    </div>
+</main>
+</body>
+</html>

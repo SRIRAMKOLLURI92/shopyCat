@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head(${shop.name})}"></head>
+<body>
+<header th:replace="~{fragments :: nav}"></header>
+<main class="container">
+    <h1 th:text="${shop.name}"></h1>
+    <p class="meta" th:text="${shop.category.label}"></p>
+    <p th:if="${shop.description}" th:text="${shop.description}"></p>
+    <dl class="details">
+        <th:block th:if="${shop.address}"><dt>Address</dt><dd th:text="${shop.address}"></dd></th:block>
+        <th:block th:if="${shop.phone}"><dt>Phone</dt><dd><a th:href="'tel:' + ${shop.phone}" th:text="${shop.phone}"></a></dd></th:block>
+        <th:block th:if="${shop.openingHours}"><dt>Hours</dt><dd th:text="${shop.openingHours}"></dd></th:block>
+        <dt>Map</dt>
+        <dd><a target="_blank" rel="noopener"
+               th:href="'https://www.openstreetmap.org/?mlat=' + ${shop.latitude} + '&mlon=' + ${shop.longitude} + '#map=17/' + ${shop.latitude} + '/' + ${shop.longitude}">Open in map</a></dd>
+    </dl>
+    <div class="actions" th:if="${isOwner}">
+        <a class="btn" th:href="@{/offers/new(shopId=${shop.id})}">+ Post an offer for this shop</a>
+        <a class="btn secondary" th:href="@{/listings/new(shopId=${shop.id})}">+ List a used item</a>
+    </div>
+
+    <h2>Current offers</h2>
+    <p class="empty" th:if="${offers.isEmpty()}">No current offers.</p>
+    <div class="grid">
+        <a class="card" th:each="o : ${offers}" th:href="@{/offers/{id}(id=${o.id})}">
+            <span class="discount" th:if="${o.discountPercent != null}" th:text="${o.discountPercent} + '% off'"></span>
+            <h3 th:text="${o.title}"></h3>
+            <span th:replace="~{fragments :: audienceBadge(${o})}"></span>
+        </a>
+    </div>
+
+    <h2>Used items from this shop</h2>
+    <p class="empty" th:if="${listings.isEmpty()}">None right now.</p>
+    <div class="grid">
+        <a class="card" th:each="l : ${listings}" th:href="@{/listings/{id}(id=${l.id})}">
+            <span class="price" th:text="'₹' + ${l.price}"></span>
+            <h3 th:text="${l.title}"></h3>
+            <span th:replace="~{fragments :: audienceBadge(${l})}"></span>
+        </a>
+    </div>
+</main>
+<footer th:replace="~{fragments :: footer}"></footer>
+</body>
+</html>

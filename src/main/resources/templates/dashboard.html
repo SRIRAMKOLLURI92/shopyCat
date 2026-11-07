@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Dashboard')}"></head>
+<body>
+<header th:replace="~{fragments :: nav}"></header>
+<main class="container">
+    <h1>Hi, <span th:text="${me.displayName}"></span></h1>
+    <p class="meta" th:text="${me.role.label()} + ' account'"></p>
+
+    <div class="actions">
+        <a class="btn" th:if="${me.shopOwner}" th:href="@{/shops/new}">+ Add a shop</a>
+        <a class="btn" th:href="@{/offers/new}" th:text="${me.shopOwner} ? '+ Post a shop offer' : '+ Share a deal tip'"></a>
+        <a class="btn" th:href="@{/listings/new}">+ Sell a used item</a>
+    </div>
+
+    <section th:if="${me.shopOwner}">
+        <h2>My shops</h2>
+        <p class="empty" th:if="${myShops.isEmpty()}">You have not added a shop yet. Add one to post verified offers.</p>
+        <ul class="list">
+            <li th:each="s : ${myShops}">
+                <a th:href="@{/shops/{id}(id=${s.id})}" th:text="${s.name}"></a>
+                <span class="meta" th:text="' · ' + ${s.category.label} + ' · ' + ${s.address}"></span>
+            </li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>Contact requests for my items</h2>
+        <p class="hint">People who want to reach you. Your phone and email are only shared if you accept.</p>
+        <p class="empty" th:if="${incoming.isEmpty()}">No requests yet.</p>
+        <ul class="list">
+            <li th:each="c : ${incoming}">
+                <b th:text="${c.requester.displayName}"></b>
+                <span class="badge muted" th:text="${c.requester.role.label()}"></span>
+                about <a th:href="@{/listings/{id}(id=${c.listing.id})}" th:text="${c.listing.title}"></a>
+                <p class="quote" th:if="${c.message}" th:text="${c.message}"></p>
+                <th:block th:switch="${c.status.name()}">
+                    <div th:case="'PENDING'" class="actions">
+                        <form th:action="@{/contact/{id}/accept(id=${c.id})}" method="post" class="inline">
+                            <button class="btn small">Accept and share contacts</button></form>
+                        <form th:action="@{/contact/{id}/decline(id=${c.id})}" method="post" class="inline">
+                            <button class="btn small secondary">Decline</button></form>
+                    </div>
+                    <p th:case="'ACCEPTED'" class="notice">Accepted. Their contact:
+                        <span th:text="${c.requester.email}"></span>
+                        <span th:if="${c.requester.phone}" th:text="' · ' + ${c.requester.phone}"></span></p>
+                    <p th:case="*" class="meta">Declined</p>
+                </th:block>
+            </li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>My contact requests</h2>
+        <p class="empty" th:if="${outgoing.isEmpty()}">You have not contacted any sellers yet.</p>
+        <ul class="list">
+            <li th:each="c : ${outgoing}">
+                <a th:href="@{/listings/{id}(id=${c.listing.id})}" th:text="${c.listing.title}"></a>
+                by <span th:text="${c.listing.postedByName}"></span>:
+                <th:block th:switch="${c.status.name()}">
+                    <span th:case="'PENDING'" class="badge muted">Waiting for reply</span>
+                    <span th:case="'ACCEPTED'" class="notice">Accepted. Contact:
+                        <span th:text="${c.listing.author.email}"></span>
+                        <span th:if="${c.listing.author.phone}" th:text="' · ' + ${c.listing.author.phone}"></span></span>
+                    <span th:case="*" class="badge muted">Declined</span>
+                </th:block>
+            </li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>My offers</h2>
+        <p class="empty" th:if="${myOffers.isEmpty()}">No offers yet.</p>
+        <ul class="list">
+            <li th:each="o : ${myOffers}">
+                <a th:href="@{/offers/{id}(id=${o.id})}" th:text="${o.title}"></a>
+                <span th:replace="~{fragments :: sourceBadge(${o})}"></span>
+                <span th:replace="~{fragments :: audienceBadge(${o})}"></span>
+                <span class="badge expired" th:unless="${o.isActive(T(java.time.LocalDate).now())}">Expired</span>
+                <form th:action="@{/offers/{id}/delete(id=${o.id})}" method="post" class="inline"
+                      onsubmit="return confirm('Delete this offer?')">
+                    <button class="link danger">Delete</button></form>
+            </li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>My used items</h2>
+        <p class="empty" th:if="${myListings.isEmpty()}">Nothing for sale yet.</p>
+        <ul class="list">
+            <li th:each="l : ${myListings}">
+                <a th:href="@{/listings/{id}(id=${l.id})}" th:text="${l.title}"></a>
+                <span class="meta" th:text="'₹' + ${l.price}"></span>
+                <span th:replace="~{fragments :: audienceBadge(${l})}"></span>
+                <span class="badge expired" th:unless="${l.available}">Sold</span>
+                <form th:if="${l.available}" th:action="@{/listings/{id}/sold(id=${l.id})}" method="post" class="inline">
+                    <button class="link">Mark sold</button></form>
+                <form th:action="@{/listings/{id}/delete(id=${l.id})}" method="post" class="inline"
+                      onsubmit="return confirm('Delete this item?')">
+                    <button class="link danger">Delete</button></form>
+            </li>
+        </ul>
+    </section>
+</main>
+<footer th:replace="~{fragments :: footer}"></footer>
+</body>
+</html>

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Near me')}"></head>
+<body>
+<header th:replace="~{fragments :: nav}"></header>
+<main class="container">
+    <section class="hero">
+        <h1>What's on offer near you</h1>
+        <p>Deals from local shops, tips from neighbours and used items for sale, all in one place.</p>
+    </section>
+
+    <form class="filters" method="get" th:action="@{/}" data-search-form>
+        <input type="hidden" name="tab" th:value="${tab}">
+        <input type="hidden" name="lat" th:value="${lat}" data-lat>
+        <input type="hidden" name="lng" th:value="${lng}" data-lng>
+        <input type="search" name="q" th:value="${q}" placeholder="Search offers, items, shops">
+        <select name="category">
+            <option value="">All categories</option>
+            <option th:each="c : ${categories}" th:value="${c}" th:text="${c.label}"
+                    th:selected="${c == category}"></option>
+        </select>
+        <select name="radius">
+            <option th:each="r : ${ {1, 2, 5, 10, 25} }" th:value="${r}" th:text="${r} + ' km'"
+                    th:selected="${r == radius}"></option>
+        </select>
+        <button type="button" class="btn secondary" data-fill-location data-submit>📍 Near me</button>
+        <button type="submit" class="btn">Search</button>
+    </form>
+    <p class="hint" th:if="${lat == null}">Tip: tap <b>Near me</b> to sort by distance. Without a location, newest posts are shown first.</p>
+    <p class="hint" data-location-status></p>
+
+    <nav class="tabs">
+        <a th:href="@{/(tab='offers', lat=${lat}, lng=${lng}, radius=${radius}, category=${category}, q=${q})}"
+           th:classappend="${tab == 'offers'} ? 'active'">Offers</a>
+        <a th:href="@{/(tab='used', lat=${lat}, lng=${lng}, radius=${radius}, category=${category}, q=${q})}"
+           th:classappend="${tab == 'used'} ? 'active'">Used items</a>
+        <a th:href="@{/(tab='shops', lat=${lat}, lng=${lng}, radius=${radius}, category=${category}, q=${q})}"
+           th:classappend="${tab == 'shops'} ? 'active'">Shops</a>
+    </nav>
+
+    <div class="grid" th:if="${tab == 'offers'}">
+        <p class="empty" th:if="${offers.isEmpty()}">No offers here yet. <a th:href="@{/offers/new}">Post the first one.</a></p>
+        <a class="card" th:each="n : ${offers}" th:with="o=${n.item}" th:href="@{/offers/{id}(id=${o.id})}">
+            <div class="card-top">
+                <span class="discount" th:if="${o.discountPercent != null}" th:text="${o.discountPercent} + '% off'"></span>
+                <span th:replace="~{fragments :: sourceBadge(${o})}"></span>
+            </div>
+            <h3 th:text="${o.title}"></h3>
+            <p class="meta">
+                <span th:text="${o.fromShop} ? ${o.shop.name} : ${o.placeName} + ' · tip by ' + ${o.author.displayName}"></span>
+            </p>
+            <p class="meta">
+                <span th:text="${o.category.label}"></span>
+                <span th:if="${n.distanceKm != null}" th:text="' · ' + ${n.distanceLabel()}"></span>
+                <span th:if="${o.validUntil != null}" th:text="' · until ' + ${#temporals.format(o.validUntil, 'd MMM')}"></span>
+            </p>
+            <span th:replace="~{fragments :: audienceBadge(${o})}"></span>
+        </a>
+    </div>
+
+    <div class="grid" th:if="${tab == 'used'}">
+        <p class="empty" th:if="${listings.isEmpty()}">No used items here yet. <a th:href="@{/listings/new}">Sell something.</a></p>
+        <a class="card" th:each="n : ${listings}" th:with="l=${n.item}" th:href="@{/listings/{id}(id=${l.id})}">
+            <div class="card-top">
+                <span class="price" th:text="'₹' + ${#numbers.formatDecimal(l.price, 1, 'COMMA', 0, 'POINT')}"></span>
+                <span th:replace="~{fragments :: sourceBadge(${l})}"></span>
+            </div>
+            <h3 th:text="${l.title}"></h3>
+            <p class="meta" th:text="${l.itemCondition.label} + ' · ' + ${l.postedByName}"></p>
+            <p class="meta">
+                <span th:text="${l.category.label}"></span>
+                <span th:if="${n.distanceKm != null}" th:text="' · ' + (${l.fromShop} ? '' : 'about ') + ${n.distanceLabel()}"></span>
+            </p>
+            <span th:replace="~{fragments :: audienceBadge(${l})}"></span>
+        </a>
+    </div>
+
+    <div class="grid" th:if="${tab == 'shops'}">
+        <p class="empty" th:if="${shops.isEmpty()}">No shops here yet.</p>
+        <a class="card" th:each="n : ${shops}" th:with="s=${n.item}" th:href="@{/shops/{id}(id=${s.id})}">
+            <h3 th:text="${s.name}"></h3>
+            <p class="meta" th:text="${s.category.label}"></p>
+            <p class="meta" th:text="${s.address}"></p>
+            <p class="meta" th:if="${n.distanceKm != null}" th:text="${n.distanceLabel()}"></p>
+        </a>
+    </div>
+</main>
+<footer th:replace="~{fragments :: footer}"></footer>
+</body>
+</html>

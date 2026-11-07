@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Sell a used item')}"></head>
+<body>
+<header th:replace="~{fragments :: nav}"></header>
+<main class="container narrow">
+    <h1>Sell a used item</h1>
+    <p class="error" th:if="${error}" th:text="${error}"></p>
+    <form class="form" method="post" th:action="@{/listings}">
+        <label th:if="${!myShops.isEmpty()}">Sell as
+            <select name="shopId" data-shop-select>
+                <option value="">Myself (private seller)</option>
+                <option th:each="s : ${myShops}" th:value="${s.id}" th:text="${s.name}"
+                        th:selected="${param.shopId != null and param.shopId[0] == s.id.toString()}"></option>
+            </select></label>
+        <label>What are you selling? <input name="title" th:value="${param.title}" required></label>
+        <label>Details <textarea name="description" rows="3" th:text="${param.description}"></textarea></label>
+        <div class="row">
+            <label>Price (₹) <input name="price" type="number" min="0" step="1" th:value="${param.price}" required></label>
+            <label>Condition
+                <select name="itemCondition">
+                    <option th:each="c : ${conditions}" th:value="${c}" th:text="${c.label}"
+                            th:selected="${param.itemCondition != null and param.itemCondition[0] == c.name()}"></option>
+                </select></label>
+            <label>Category
+                <select name="category">
+                    <option th:each="c : ${categories}" th:value="${c}" th:text="${c.label}"
+                            th:selected="${param.category != null and param.category[0] == c.name()}"></option>
+                </select></label>
+        </div>
+        <div data-personal-only>
+            <fieldset th:replace="~{fragments :: locationPicker(true)}"></fieldset>
+            <p class="hint">🔒 Your location is rounded to about 1 km, and your phone and email stay hidden.
+                Buyers send a contact request, and you choose whether to share your details.</p>
+        </div>
+        <label>Who can see this?
+            <select name="audience">
+                <option th:each="a : ${audiences}" th:value="${a}" th:text="${a.description}"
+                        th:selected="${param.audience != null and param.audience[0] == a.name()}"></option>
+            </select></label>
+        <button class="btn" type="submit">List item</button>
+    </form>
+</main>
+</body>
+</html>
